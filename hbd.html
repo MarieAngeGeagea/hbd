@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blow the Candle on the Cake!</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f7e7c0;
+      margin: 0;
+      flex-direction: column;
+    }
+
+    #cake {
+      position: relative;
+      width: 200px;
+      height: 100px;
+      background-color: #ff69b4;
+      border-radius: 10px 10px 0 0;
+      margin-top: 20px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    #cake::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 10%;
+      width: 80%;
+      height: 20px;
+      background-color: #ffb6c1;
+      border-radius: 10px;
+    }
+
+    #candle {
+      position: absolute;
+      top: -80px;
+      left: 50%;
+      width: 40px;
+      height: 80px;
+      background-color: #ffa500;
+      border-radius: 20px;
+      transform: translateX(-50%);
+    }
+
+    #flame {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      width: 20px;
+      height: 30px;
+      background: radial-gradient(circle, yellow, orange, red);
+      border-radius: 50%;
+      transform: translateX(-50%);
+      animation: flicker 0.1s infinite;
+    }
+
+    @keyframes flicker {
+      0%, 100% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.1); }
+    }
+        /* Style and position the play button below the cake */
+    #playMusicButton {
+      margin-top: 50px; /* Adds space between cake and button */
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #ff69b4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #playMusicButton:active {
+      background-color: #ff3a8c;
+    }
+  </style>
+</head>
+<body>
+  <div id="cake">
+    <div id="candle">
+      <div id="flame"></div>
+    </div>
+  </div>
+
+  <!-- Add a button to start the music manually -->
+  <button id="playMusicButton" onclick="startMusic()">Play Birthday Song 🎶</button>
+  <!-- Play MP3 file instead of YouTube video -->
+  <audio id="song" src="Happy Birthday To You - THE KIBOOMERS Birthday Party Song for Kids.mp3"></audio>
+
+  <script>
+    // Function to simulate the "blow" to extinguish the candle
+    const flame = document.getElementById("flame");
+    const song = document.getElementById("song");
+    const playMusicButton = document.getElementById("playMusicButton");
+
+    function startMusic() {
+      song.play(); // Start the music
+      playMusicButton.style.display = "none"; // Hide the button once the music starts
+    }
+
+    function extinguishCandle() {
+      flame.style.display = "none";
+      song.pause();  // Stop the MP3 song
+      // Delay the "Happy Birthday!" message by 0.5 seconds for smoother effect
+      setTimeout(() => {
+        alert("Happy Birthday Yara!");
+      }, 1000);
+    }
+
+    // Function to detect blowing sound with microphone
+    async function detectBlow() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const audioContext = new AudioContext();
+        const microphone = audioContext.createMediaStreamSource(stream);
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        microphone.connect(analyser);
+
+        function checkBlow() {
+          analyser.getByteFrequencyData(dataArray);
+          let blowStrength = dataArray.reduce((a, b) => a + b, 0);
+          console.log("Blow strength:", blowStrength);
+          if (blowStrength > 5000) { // Adjust threshold as necessary
+            extinguishCandle();
+            stream.getTracks().forEach(track => track.stop()); // Stop microphone
+          } else {
+            requestAnimationFrame(checkBlow);
+          }
+        }
+       // setTimeout(checkBlow, 3000);
+        checkBlow();
+      } catch (err) {
+        console.error("Microphone access denied or not supported.");
+      }
+    }
+
+    // Start detecting for blowing sound
+    detectBlow();
+  </script>
+</body>
+</html>
